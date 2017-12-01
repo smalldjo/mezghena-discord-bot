@@ -240,7 +240,7 @@ ModelManifest.xml
 
 # FAKE - F# Make
 .fake/
-mazghena-bot/flags/*
+
 venv/*
-mazghena-bot/private/*
+
 __pycache__
