@@ -4,6 +4,8 @@ import asyncio
 import requests
 from googleapiclient.discovery import build
 from twitter import Twitter,OAuth
+import pyarabic.araby as araby
+import pyarabic.unshape as unshape
 
 from time import time
 from math import fmod,floor
@@ -117,12 +119,21 @@ class utils:
         trends_embed.set_thumbnail(url=results["items"][0]["snippet"]["thumbnails"]["default"]["url"])
         i = 1
         for video in results["items"]:
-            title = video["snippet"]["title"]
+            title = self.format_titles(video["snippet"]["title"])
             link = "{}{}".format(YOUTUBE_VIDEO_BASIC_LINK,video["id"])
             channel = video["snippet"]["channelTitle"]
-            views = self.format_numbers(video["statistics"]["viewCount"])
-            likes = self.format_numbers(video["statistics"]["likeCount"])
-            dislikes = self.format_numbers(video["statistics"]["dislikeCount"])
+            try:
+                views = self.format_numbers(video["statistics"]["viewCount"])
+            except:
+                views = 0
+            try:
+                likes = self.format_numbers(video["statistics"]["likeCount"])
+            except:
+                likes = 0
+            try:
+                dislikes = self.format_numbers(video["statistics"]["dislikeCount"])
+            except:
+                dislikes = 0
             trends_embed.add_field(name="#{}:".format(i),value="[{}]({}) \n :eye: : {} :thumbsup: : {} :thumbsdown: : {} \n ___".format(title,link,views,likes,dislikes),inline=False)
             i = i+1
 
@@ -131,7 +142,7 @@ class utils:
         twitter_trends = self.twitter.trends.place(_id = ALGERIA_WOEID )
         i = 1
         for trend in twitter_trends[0]["trends"][:3]:
-            trends_embed.add_field(name="#{}".format(i),value='[{}]({})'.format(trend['name'],trend['url']))
+            trends_embed.add_field(name="#{}".format(i),value='[{}]({})'.format(self.format_titles(trend['name']),trend['url']))
             i = i+1
         await context.send("",embed= trends_embed)
 
@@ -145,6 +156,36 @@ class utils:
             k = number / 1000
             return("{:.1f}K".format(k))
         return(number)
+
+    def format_titles(self,text):
+        if self.str_contain_arabic(text):
+            words = araby.tokenize(text)
+            text = ''
+            i = 0
+            while i<len(words):
+                #once we detect an ar word, try to get what follows
+                if self.str_contain_arabic(words[i]):
+                    ar_sentence = ""
+                    j = i
+                    while j<len(words):
+                        if self.str_contain_arabic(words[j]):
+                            ar_sentence += " "+words[j]
+                        else:
+                            break
+                        j += 1
+                    text += " "+unshape.unshaping_line(ar_sentence)
+                    i = j+1
+                else:
+                    text += " "+words[i]
+                    i += 1
+        return text
+
+    def str_contain_arabic(self,text:str):
+        for letter in araby.LETTERS:
+            if letter in text:
+                return True
+        return False
+
 
 
 
