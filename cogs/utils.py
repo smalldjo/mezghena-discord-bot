@@ -99,19 +99,24 @@ class utils:
                 await context.message.delete()
                 return
             intro = await intro_channel.history().find(lambda m:m.author==member)
-            if intro:
-                intro_embed = discord.Embed(title="Who is {} ?".format(member.display_name),description=member.top_role.name)
-                intro_embed.add_field(name="Hash:",value=member,inline=False)
-                intro_embed.add_field(name="Member since",value=" {0.day}/{0.month}/{0.year} ".format(member.joined_at),inline=False)
-                intro_embed.set_thumbnail(url=member.avatar_url)
-                intro_embed.add_field(name="Introduction:",value="``` {} ```".format(intro.content),inline=False)
 
-                await context.send("",embed=intro_embed)
+            intro_embed = discord.Embed(title="Who is {} ?".format(member.display_name),description=member.top_role.name)
+            intro_embed.add_field(name="Hash:",value=member,inline=False)
+            intro_embed.add_field(name="Member since",value=" {0.day}/{0.month}/{0.year} ".format(member.joined_at),inline=False)
+            intro_embed.set_thumbnail(url=member.avatar_url)
+            if intro:
+                intro_embed.add_field(name="Introduction:",value="``` {} ```".format(intro.content),inline=False)
             else:
-                await context.send("{} haven't introduced himself yet".format(member.display_name))
+                intro_embed.add_field(name="Introduction:",value="``` no introduction found ```",inline=False)
+            await context.send("",embed=intro_embed)
+
         else:
             await context.send("No introduction channel found on this server")
 
+    @who.error
+    async def who_error(self,ctx, error):
+        if isinstance(error, commands.BadArgument):
+            await ctx.send('no valid member provided...')
 
     @commands.command()
     async def trends(self,context, medium:str=''):
