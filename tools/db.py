@@ -14,7 +14,6 @@ class manager:
 
     def connect(self):
         try:
-            #config
             self.connection = psycopg2.connect(dbname=Config.DB_name, user=Config.DB_user, password=Config.DB_password)
         except:
             print('can\'t conntect to DB')

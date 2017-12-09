@@ -2,12 +2,14 @@ aiohttp==2.2.5
 async-timeout==2.0.0
 certifi==2017.11.5
 chardet==3.0.4
+git+https://github.com/Rapptz/discord.py@rewrite  
 google-api-python-client==1.6.4
 httplib2==0.10.3
 idna==2.6
 multidict==3.3.2
 oauth2client==4.1.2
 psycopg2==2.7.3.2
+PyArabic==0.6.2
 pyasn1==0.4.2
 pyasn1-modules==0.2.1
 requests==2.18.4
@@ -18,5 +20,3 @@ uritemplate==3.0.0
 urllib3==1.22
 websockets==3.4
 yarl==0.13.0
-git+https://github.com/Rapptz/discord.py@rewrite 
-

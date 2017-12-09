@@ -4,12 +4,15 @@ import asyncio
 import requests
 from googleapiclient.discovery import build
 from twitter import Twitter,OAuth
+import pyarabic.araby as araby
+import pyarabic.unshape as unshape
 
 from time import time
 from math import fmod,floor
 
 from tools.db import db_manager
 from private import tokens
+import Config
 
 arq_tags = ["dz","dza","ar","arq","arabic","derja"]
 eng_tags = ["en","eng","english"]
@@ -96,33 +99,47 @@ class utils:
                 await context.message.delete()
                 return
             intro = await intro_channel.history().find(lambda m:m.author==member)
-            if intro:
-                intro_embed = discord.Embed(title="Who is {} ?".format(member.display_name),description=member.top_role.name)
-                intro_embed.add_field(name="Hash:",value=member,inline=False)
-                intro_embed.add_field(name="Member since",value=" {0.day}/{0.month}/{0.year} ".format(member.joined_at),inline=False)
-                intro_embed.set_thumbnail(url=member.avatar_url)
-                intro_embed.add_field(name="Introduction:",value="``` {} ```".format(intro.content),inline=False)
 
-                await context.send("",embed=intro_embed)
+            intro_embed = discord.Embed(title="Who is {} ?".format(member.display_name),description=member.top_role.name)
+            intro_embed.add_field(name="Hash:",value=member,inline=False)
+            intro_embed.add_field(name="Member since",value=" {0.day}/{0.month}/{0.year} ".format(member.joined_at),inline=False)
+            intro_embed.set_thumbnail(url=member.avatar_url)
+            if intro:
+                intro_embed.add_field(name="Introduction:",value="``` {} ```".format(intro.content),inline=False)
             else:
-                await context.send("{} haven't introduced himself yet".format(member.display_name))
+                intro_embed.add_field(name="Introduction:",value="``` no introduction found ```",inline=False)
+            await context.send("",embed=intro_embed)
+
         else:
             await context.send("No introduction channel found on this server")
 
+    @who.error
+    async def who_error(self,ctx, error):
+        if isinstance(error, commands.BadArgument):
+            await ctx.send('no valid member provided...')
 
     @commands.command()
     async def trends(self,context, medium:str=''):
-        results = self.youtube.videos().list( part='snippet,statistics',chart="mostPopular",maxResults=3,regionCode="DZ").execute()
+        results = self.youtube.videos().list( part='snippet,statistics',chart="mostPopular",maxResults=Config.youtube_trends_number,regionCode="DZ").execute()
         trends_embed = discord.Embed(title="Trending in Algeria")
         trends_embed.set_thumbnail(url=results["items"][0]["snippet"]["thumbnails"]["default"]["url"])
         i = 1
         for video in results["items"]:
-            title = video["snippet"]["title"]
+            title = self.format_titles(video["snippet"]["title"])
             link = "{}{}".format(YOUTUBE_VIDEO_BASIC_LINK,video["id"])
             channel = video["snippet"]["channelTitle"]
-            views = self.format_numbers(video["statistics"]["viewCount"])
-            likes = self.format_numbers(video["statistics"]["likeCount"])
-            dislikes = self.format_numbers(video["statistics"]["dislikeCount"])
+            try:
+                views = self.format_numbers(video["statistics"]["viewCount"])
+            except:
+                views = 0
+            try:
+                likes = self.format_numbers(video["statistics"]["likeCount"])
+            except:
+                likes = 0
+            try:
+                dislikes = self.format_numbers(video["statistics"]["dislikeCount"])
+            except:
+                dislikes = 0
             trends_embed.add_field(name="#{}:".format(i),value="[{}]({}) \n :eye: : {} :thumbsup: : {} :thumbsdown: : {} \n ___".format(title,link,views,likes,dislikes),inline=False)
             i = i+1
 
@@ -130,8 +147,8 @@ class utils:
         trends_embed.add_field(inline=False,name="Twitter Top Trends:",value="---------")
         twitter_trends = self.twitter.trends.place(_id = ALGERIA_WOEID )
         i = 1
-        for trend in twitter_trends[0]["trends"][:3]:
-            trends_embed.add_field(name="#{}".format(i),value='[{}]({})'.format(trend['name'],trend['url']))
+        for trend in twitter_trends[0]["trends"][:Config.twitter_hashtags_number]:
+            trends_embed.add_field(name="#{}".format(i),value='[{}]({})'.format(self.format_titles(trend['name']),trend['url']))
             i = i+1
         await context.send("",embed= trends_embed)
 
@@ -145,6 +162,36 @@ class utils:
             k = number / 1000
             return("{:.1f}K".format(k))
         return(number)
+
+    def format_titles(self,text):
+        if self.str_contain_arabic(text):
+            words = araby.tokenize(text)
+            text = ''
+            i = 0
+            while i<len(words):
+                #once we detect an ar word, try to get what follows
+                if self.str_contain_arabic(words[i]):
+                    ar_sentence = ""
+                    j = i
+                    while j<len(words):
+                        if self.str_contain_arabic(words[j]):
+                            ar_sentence += " "+words[j]
+                        else:
+                            break
+                        j += 1
+                    text += " "+unshape.unshaping_line(ar_sentence)
+                    i = j+1
+                else:
+                    text += " "+words[i]
+                    i += 1
+        return text
+
+    def str_contain_arabic(self,text:str):
+        for letter in araby.LETTERS:
+            if letter in text:
+                return True
+        return False
+
 
 
 
