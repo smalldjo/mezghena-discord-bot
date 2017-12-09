@@ -4,7 +4,7 @@ import asyncio
 from time import time
 
 from tools.db import db_manager
-
+import Config
 
 class mod:
 
@@ -12,9 +12,9 @@ class mod:
         self.bot = bot
         self.intros_channels= db_manager.get_introduction_channels()
 
-        #config
-        self.intro_minimum_len = 10
-        self.intro_minimum_len_to_dm = 40
+        
+        self.intro_minimum_len = Config.introduction_min_length
+        self.intro_minimum_len_to_dm = Config.introduction_min_length_dm
 
 
 
@@ -31,14 +31,12 @@ class mod:
 
 
     async def handle_intros(self,msg):
-        #config
         if len(msg.content.strip()) < self.intro_minimum_len:
             await msg.delete()
             await msg.channel.send("Introduction too short",delete_after=5)
             return
         prev_msg = await msg.channel.history().find(lambda m:(m.id != msg.id and m.author==msg.author))
         if not prev_msg is None:
-            #print()
             if len(msg.content.strip()) > self.intro_minimum_len_to_dm:
                 await msg.author.send("just so you don't lose all of what you wrote: \n {}".format(msg.content))
             await msg.delete()

@@ -12,6 +12,7 @@ from math import fmod,floor
 
 from tools.db import db_manager
 from private import tokens
+import Config
 
 arq_tags = ["dz","dza","ar","arq","arabic","derja"]
 eng_tags = ["en","eng","english"]
@@ -114,7 +115,7 @@ class utils:
 
     @commands.command()
     async def trends(self,context, medium:str=''):
-        results = self.youtube.videos().list( part='snippet,statistics',chart="mostPopular",maxResults=3,regionCode="DZ").execute()
+        results = self.youtube.videos().list( part='snippet,statistics',chart="mostPopular",maxResults=Config.youtube_trends_number,regionCode="DZ").execute()
         trends_embed = discord.Embed(title="Trending in Algeria")
         trends_embed.set_thumbnail(url=results["items"][0]["snippet"]["thumbnails"]["default"]["url"])
         i = 1
@@ -141,7 +142,7 @@ class utils:
         trends_embed.add_field(inline=False,name="Twitter Top Trends:",value="---------")
         twitter_trends = self.twitter.trends.place(_id = ALGERIA_WOEID )
         i = 1
-        for trend in twitter_trends[0]["trends"][:3]:
+        for trend in twitter_trends[0]["trends"][:Config.twitter_hashtags_number]:
             trends_embed.add_field(name="#{}".format(i),value='[{}]({})'.format(self.format_titles(trend['name']),trend['url']))
             i = i+1
         await context.send("",embed= trends_embed)

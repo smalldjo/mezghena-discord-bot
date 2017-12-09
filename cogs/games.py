@@ -10,6 +10,7 @@ import operator
 
 from .data.flags import COUNTRIES as countries
 from tools.db import db_manager
+import Config
 
 
 class games:
@@ -21,9 +22,9 @@ class games:
         self.trivia_sessions = {}
         self.flags_sessions = {}
 
-        #config
-        self.flag_rounds = 10
-        self.flags_round_time = 15
+        
+        self.flag_rounds = Config.flag_game_rounds
+        self.flags_round_time = Config.flag_game_round_duration
 
 
     #@commands.command()
