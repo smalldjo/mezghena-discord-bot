@@ -21,7 +21,7 @@ class mod:
     async def on_message(self, msg):
         if msg.author == self.bot.user:
             return
-        if msg.author.bot:
+        if msg.author.bot and self.intros_channels[msg.guild.id] == msg.channel.id :
             await msg.delete()
             await msg.channel.send("Bots need no introduction",delete_after=2)
             return
