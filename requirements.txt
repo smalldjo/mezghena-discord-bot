@@ -21,6 +21,6 @@ rsa==3.4.2
 six==1.11.0
 twitter==1.18.0
 uritemplate==3.0.0
-urllib3==1.23
+urllib3==1.26.5
 websockets==6.0
 yarl==1.2.6
